@@ -1,0 +1,13 @@
+{% extends 'library_app/base.html' %}
+{% block title %}Book Detail{% endblock %}
+{% block content %}
+<h2>{{ book.title }}</h2>
+<ul class="list-group mb-3">
+  <li class="list-group-item"><strong>Book ID:</strong> {{ book.book_id }}</li>
+  <li class="list-group-item"><strong>Author:</strong> {{ book.author }}</li>
+  <li class="list-group-item"><strong>Status:</strong> {{ book.status }}</li>
+  <li class="list-group-item"><strong>Access Count:</strong> {{ book.access_count }}</li>
+  <li class="list-group-item"><strong>Recycle Status:</strong> {{ book.recycle_status }}</li>
+</ul>
+<a href="{% url 'library_app:book_list' %}" class="btn btn-secondary">Back</a>
+{% endblock %}

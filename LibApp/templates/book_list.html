@@ -1,0 +1,32 @@
+{% extends 'library_app/base.html' %}
+{% block title %}Book List{% endblock %}
+{% block content %}
+<h2>Books</h2>
+<form class="row mb-3" method="get">
+  <div class="col-md-5"><input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search title, author or ID"></div>
+  <div class="col-md-3">
+    <select name="status" class="form-select">
+      <option value="">All</option>
+      <option value="available" {% if status == 'available' %}selected{% endif %}>Available</option>
+      <option value="issued" {% if status == 'issued' %}selected{% endif %}>Issued</option>
+    </select>
+  </div>
+  <div class="col-md-2"><button type="submit" class="btn btn-primary">Filter</button></div>
+</form>
+<table class="table table-hover">
+  <thead><tr><th>ID</th><th>Title</th><th>Author</th><th>Status</th><th>Access Count</th></tr></thead>
+  <tbody>
+    {% for book in books %}
+      <tr>
+        <td>{{ book.book_id }}</td>
+        <td><a href="{% url 'library_app:book_detail' book.id %}">{{ book.title }}</a></td>
+        <td>{{ book.author }}</td>
+        <td>{{ book.status }}</td>
+        <td>{{ book.access_count }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="5">No books found.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

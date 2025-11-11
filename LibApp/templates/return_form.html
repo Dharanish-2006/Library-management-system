@@ -1,0 +1,14 @@
+{% extends 'library_app/base.html' %}
+{% block title %}Return Book{% endblock %}
+{% block content %}
+<h2>Return Book</h2>
+<p><strong>Book:</strong> {{ issue.book.title }}</p>
+<p><strong>Student:</strong> {{ issue.student.name }}</p>
+<p><strong>Due Date:</strong> {{ issue.due_date }}</p>
+<p><strong>Fine (if any):</strong> {{ calculated_fine }}</p>
+<form method="post">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-danger">Confirm Return</button>
+  <a href="{% url 'library_app:dashboard' %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}
