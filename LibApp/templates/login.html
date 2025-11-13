@@ -1,14 +1,120 @@
-{% extends 'library_app/base.html' %}
-{% block title %}Admin Login{% endblock %}
-{% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-4">
-    <h3 class="text-center mb-3">Admin Login</h3>
-    <form method="post">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button type="submit" class="btn btn-primary w-100">Login</button>
-    </form>
-  </div>
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Library Login | Library Management System</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: #f7f9fc;
+    }
+    .login-container {
+      max-width: 450px;
+      margin: 60px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+    .toggle-password {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-container">
+  <h2>📚 Library Login</h2>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- LOGIN FORM -->
+  <form method="POST" action="{% url 'LibApp:login' %}">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label>Username</label>
+      <input type="text" name="username" class="form-control" required>
+    </div>
+
+    <div class="mb-3 position-relative">
+      <label>Password</label>
+      <input type="password" name="password" id="loginPassword" class="form-control" required>
+      <button type="button" class="btn btn-sm btn-outline-secondary toggle-password"
+              onclick="togglePassword('loginPassword', this)">👁</button>
+    </div>
+
+    <button type="submit" class="btn btn-primary w-100 mb-3">Login</button>
+  </form>
+
+  <hr>
+
+  <p class="text-center text-muted">New user? Sign up below 👇</p>
+
+  <!-- SIGNUP FORM -->
+  <form method="POST" action="{% url 'LibApp:signup' %}">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label>Username</label>
+      <input type="text" name="username" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label>Email</label>
+      <input type="email" name="email" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label>Password</label>
+      <input type="password" name="password1" id="password1" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label>Confirm Password</label>
+      <input type="password" name="password2" id="password2" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label>Role</label>
+      <select name="role" class="form-select" required>
+        <option value="student">Student</option>
+        <option value="librarian">Librarian</option>
+      </select>
+    </div>
+
+    <button type="submit" class="btn btn-success w-100">Sign Up</button>
+  </form>
 </div>
-{% endblock %}
+
+<script>
+  function togglePassword(fieldId, btn) {
+    const field = document.getElementById(fieldId);
+    if (field.type === "password") {
+      field.type = "text";
+      btn.textContent = "🙈";
+    } else {
+      field.type = "password";
+      btn.textContent = "👁";
+    }
+  }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

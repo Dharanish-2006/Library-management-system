@@ -1,4 +1,4 @@
-{% extends 'library_app/base.html' %}
+{% extends 'base.html' %}
 {% block title %}Issue Book{% endblock %}
 {% block content %}
 <h2>Issue Book</h2>
@@ -6,6 +6,6 @@
   {% csrf_token %}
   {{ form.as_p }}
   <button type="submit" class="btn btn-success">Issue</button>
-  <a href="{% url 'library_app:dashboard' %}" class="btn btn-secondary">Cancel</a>
+  <a href="{% url 'LibApp:dashboard' %}" class="btn btn-secondary">Cancel</a>
 </form>
 {% endblock %}
