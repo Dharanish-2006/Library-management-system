@@ -7,10 +7,6 @@ from .models import Book, Student, IssuedBook, Profile
 from .forms import BookForm, IssueForm, ReturnForm
 from django.db.models import Sum
 
-
-# -------------------------------------------------------------------
-# 🔐 LOGIN
-# -------------------------------------------------------------------
 def login_view(request):
     if request.method == "POST":
         username = request.POST.get("username")
@@ -21,22 +17,18 @@ def login_view(request):
             login(request, user)
             role = user.profile.role
             messages.success(request, f"Welcome {username}! Logged in as {role.capitalize()}.")
-            return redirect("LibApp:dashboard")  # ✅ Fixed namespace
+            return redirect("LibApp:dashboard") 
         else:
             messages.error(request, "Invalid username or password.")
     return render(request, "login.html")
 
-
-# -------------------------------------------------------------------
-# 🆕 SIGNUP
-# -------------------------------------------------------------------
 def signup_view(request):
     if request.method == "POST":
         username = request.POST.get("username")
         email = request.POST.get("email")
         password1 = request.POST.get("password1")
         password2 = request.POST.get("password2")
-        role = request.POST.get("role")
+        r = request.POST.get("role")
 
         if password1 != password2:
             messages.error(request, "Passwords do not match.")
@@ -48,31 +40,30 @@ def signup_view(request):
 
         user = User.objects.create_user(username=username, email=email, password=password1)
 
-        # ✅ Make sure profile exists and set correct role
         profile = Profile.objects.get(user=user)
-        profile.role = role
+        profile.role = r
         profile.save()
 
-        messages.success(request, "Account created successfully! Please log in.")
+        if r == "student":
+            Student.objects.create(
+                user=user,
+                roll_no=f"STU{user.id}",
+                email=email
+            )
+
+        messages.success(request, f"Account created successfully as {r}. Please log in.")
         return redirect("LibApp:login")
 
     return redirect("LibApp:login")
 
 
 
-# -------------------------------------------------------------------
-# 🚪 LOGOUT
-# -------------------------------------------------------------------
 @login_required
 def logout_view(request):
     logout(request)
     messages.success(request, "Logged out successfully.")
-    return redirect("LibApp:login")  # ✅ Fixed
+    return redirect("LibApp:login")
 
-
-# -------------------------------------------------------------------
-# 🏠 DASHBOARD
-# -------------------------------------------------------------------
 @login_required
 def dashboard(request):
     role = request.user.profile.role
@@ -86,10 +77,6 @@ def dashboard(request):
         messages.error(request, "Invalid user role.")
         return redirect("LibApp:logout")
 
-
-# -------------------------------------------------------------------
-# 📚 BOOK MANAGEMENT
-# -------------------------------------------------------------------
 @login_required
 def book_list(request):
     books = Book.objects.all()
@@ -99,7 +86,6 @@ def book_list(request):
 @login_required
 def book_detail(request, pk):
     book = get_object_or_404(Book, pk=pk)
-    book.access_count += 1
     book.save()
     return render(request, "book_detail.html", {"book": book})
 
@@ -108,14 +94,14 @@ def book_detail(request, pk):
 def add_book(request):
     if request.user.profile.role != "librarian":
         messages.error(request, "Only librarians can add books.")
-        return redirect("LibApp:dashboard")  # ✅ Fixed
+        return redirect("LibApp:dashboard")
 
     if request.method == "POST":
         form = BookForm(request.POST)
         if form.is_valid():
             form.save()
             messages.success(request, "Book added successfully!")
-            return redirect("LibApp:book_list")  # ✅ Fixed
+            return redirect("LibApp:book_list")
     else:
         form = BookForm()
 
@@ -126,59 +112,60 @@ def add_book(request):
 def student_list(request):
     if request.user.profile.role != "librarian":
         messages.error(request, "Access denied.")
-        return redirect("LibApp:dashboard")  # ✅ Fixed
+        return redirect("LibApp:dashboard")
 
     students = Student.objects.all()
     return render(request, "student_list.html", {"students": students})
 
-
-# -------------------------------------------------------------------
-# 📖 ISSUE & RETURN BOOKS (Librarian only)
-# -------------------------------------------------------------------
 @login_required
 def issue_book(request):
     if request.user.profile.role != "librarian":
         messages.error(request, "Only librarians can issue books.")
-        return redirect("LibApp:dashboard")  # ✅ Fixed
+        return redirect("LibApp:dashboard")  
 
     if request.method == "POST":
         form = IssueForm(request.POST)
         if form.is_valid():
-            form.save()
+            issued_book = form.save(commit=False)
+            book = issued_book.book
+            book.access_count += 1
+            book.status = "issued"
+            book.save()
+
+            issued_book.save()
+
             messages.success(request, "Book issued successfully!")
-            return redirect("LibApp:book_list")  # ✅ Fixed
+            return redirect("LibApp:book_list")
     else:
         form = IssueForm()
 
     return render(request, "issue_form.html", {"form": form})
 
 
+
 @login_required
 def return_book(request):
     if request.user.profile.role != "librarian":
         messages.error(request, "Only librarians can return books.")
-        return redirect("LibApp:dashboard")  # ✅ Fixed
+        return redirect("LibApp:dashboard")
 
     if request.method == "POST":
         form = ReturnForm(request.POST)
         if form.is_valid():
             form.save()
             messages.success(request, "Book returned successfully!")
-            return redirect("LibApp:book_list")  # ✅ Fixed
+            return redirect("LibApp:book_list")
     else:
         form = ReturnForm()
 
     return render(request, "return_form.html", {"form": form})
 
 
-# -------------------------------------------------------------------
-# 📊 REPORTS
-# -------------------------------------------------------------------
 @login_required
 def reports_dashboard(request):
     if request.user.profile.role != "librarian":
         messages.error(request, "Access denied.")
-        return redirect("LibApp:dashboard")  # ✅ Fixed
+        return redirect("LibApp:dashboard")
 
     total_books = Book.objects.count()
     issued_books = IssuedBook.objects.count()
