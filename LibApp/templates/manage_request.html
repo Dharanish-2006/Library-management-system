@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>📖 Request Review</h3>
+
+<p><strong>Student:</strong> {{ req.student.user.username }}</p>
+<p><strong>Book:</strong> {{ req.book.title }}</p>
+
+<form method="POST">
+  {% csrf_token %}
+  <button name="action" value="approve" class="btn btn-success">
+    Approve & Issue
+  </button>
+
+  <hr>
+
+  <textarea name="reason" class="form-control mb-2"
+            placeholder="Reason for rejection"></textarea>
+
+  <button name="action" value="reject" class="btn btn-danger">
+    Reject
+  </button>
+</form>
+{% endblock %}

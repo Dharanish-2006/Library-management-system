@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .models import Book, Student, IssuedBook, Profile
+from .models import Book, BookRequest, Student, IssuedBook, Profile
 from .forms import BookForm, IssueForm, ReturnForm
 from django.db.models import Sum
 
@@ -182,3 +182,84 @@ def reports_dashboard(request):
         "unused_books": unused_books,
     }
     return render(request, "reports_dashboard.html", context)
+@login_required
+def request_book(request, book_id):
+    if request.user.profile.role != "student":
+        messages.error(request, "Only students can request books.")
+        return redirect("LibApp:dashboard")
+
+    book = get_object_or_404(Book, id=book_id)
+
+    if book.status != "available":
+        messages.error(request, "This book is not available.")
+        return redirect("LibApp:book_list")
+
+    student = get_object_or_404(Student, user=request.user)
+
+    if BookRequest.objects.filter(student=student, book=book, status="pending").exists():
+        messages.warning(request, "You already requested this book.")
+        return redirect("LibApp:book_list")
+
+    BookRequest.objects.create(student=student, book=book)
+    messages.success(request, "Book request sent to librarian.")
+    return redirect("LibApp:dashboard")
+    
+@login_required
+def book_requests(request):
+    if request.user.profile.role != "librarian":
+        messages.error(request, "Access denied.")
+        return redirect("LibApp:dashboard")
+
+    requests = BookRequest.objects.select_related(
+        "student__user", "book"
+    ).order_by("-request_date")
+
+    return render(request, "book_requests.html", {"requests": requests})
+
+@login_required
+def manage_request(request, request_id):
+    if request.user.profile.role != "librarian":
+        messages.error(request, "Access denied.")
+        return redirect("LibApp:dashboard")
+
+    req = get_object_or_404(BookRequest, id=request_id)
+
+    if req.status != "pending":
+        messages.warning(request, "Request already processed.")
+        return redirect("LibApp:book_requests")
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+
+        if action == "approve":
+            book = req.book
+
+            if book.status != "available":
+                messages.error(request, "Book is not available.")
+                return redirect("LibApp:book_requests")
+
+            IssuedBook.objects.create(
+                student=req.student,
+                book=book
+            )
+
+            book.status = "issued"
+            book.access_count += 1
+            book.save()
+
+            req.status = "approved"
+            req.save()
+
+            messages.success(request, "Book approved and issued successfully.")
+
+        elif action == "reject":
+            reason = request.POST.get("reason")
+            req.status = "rejected"
+            req.reject_reason = reason
+            req.save()
+
+            messages.success(request, "Book request rejected.")
+
+        return redirect("LibApp:book_requests")
+
+    return render(request, "manage_request.html", {"req": req})

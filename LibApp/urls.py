@@ -16,4 +16,9 @@ urlpatterns = [
     path("return/", return_book, name="return_book"),
 
     path("reports/", reports_dashboard, name="reports"),
+    path("books/request/<int:book_id>/", request_book, name="request_book"),
+    path("requests/", book_requests, name="book_requests"),
+    path("requests/manage/<int:request_id>/", manage_request, name="manage_request"),
+
+
 ]

@@ -34,9 +34,7 @@ class Book(models.Model):
         return self.title
 
 
-# -------------------------------------------------------------------
-# 👩‍🎓 STUDENT MODEL
-# -------------------------------------------------------------------
+
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, default=None)
     roll_no = models.CharField(max_length=20, unique=True, default="UNKNOWN")
@@ -47,9 +45,6 @@ class Student(models.Model):
         return f"{self.user.username if self.user else 'NoUser'} - {self.roll_no}"
 
 
-# -------------------------------------------------------------------
-# 📖 ISSUED BOOK MODEL
-# -------------------------------------------------------------------
 class IssuedBook(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     book = models.ForeignKey(Book, on_delete=models.CASCADE)
@@ -67,4 +62,18 @@ class IssuedBook(models.Model):
             delta = (timezone.now().date() - self.return_date).days
             self.fine_amount = delta * 1.0
             self.save()
+class BookRequest(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
 
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    book = models.ForeignKey(Book, on_delete=models.CASCADE)
+    request_date = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    reject_reason = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.student} → {self.book} ({self.status})"

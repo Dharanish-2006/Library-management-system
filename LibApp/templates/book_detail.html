@@ -1,13 +1,26 @@
 {% extends 'base.html' %}
 {% block title %}Book Detail{% endblock %}
+
 {% block content %}
 <h2>{{ book.title }}</h2>
+
 <ul class="list-group mb-3">
-  <li class="list-group-item"><strong>Book ID:</strong> {{ book.book_id }}</li>
+  <li class="list-group-item"><strong>Book ID:</strong> {{ book.id }}</li>
   <li class="list-group-item"><strong>Author:</strong> {{ book.author }}</li>
   <li class="list-group-item"><strong>Status:</strong> {{ book.status }}</li>
   <li class="list-group-item"><strong>Access Count:</strong> {{ book.access_count }}</li>
   <li class="list-group-item"><strong>Recycle Status:</strong> {{ book.recycle_status }}</li>
 </ul>
+
+{% if request.user.profile.role == "student" and book.status == "available" %}
+  <a href="{% url 'LibApp:request_book' book.id %}" 
+     class="btn btn-success">
+     📩 Request This Book
+  </a>
+{% elif book.status != "available" %}
+  <span class="badge bg-secondary">Not Available</span>
+{% endif %}
+
+<br><br>
 <a href="{% url 'LibApp:book_list' %}" class="btn btn-secondary">Back</a>
 {% endblock %}

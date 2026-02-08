@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>📨 Book Requests</h3>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Student</th>
+      <th>Book</th>
+      <th>Date</th>
+      <th>Status</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for req in requests %}
+    <tr>
+      <td>{{ req.student.user.username }}</td>
+      <td>{{ req.book.title }}</td>
+      <td>{{ req.request_date }}</td>
+      <td>{{ req.status }}</td>
+      <td>
+        {% if req.status == "pending" %}
+        <a href="{% url 'LibApp:manage_request' req.id %}" class="btn btn-sm btn-primary">
+          Review
+        </a>
+        {% else %}
+        —
+        {% endif %}
+      </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="5">No requests.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
