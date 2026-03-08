@@ -6,6 +6,44 @@ from django.contrib.auth.decorators import login_required
 from .models import Book, BookRequest, Student, IssuedBook, Profile
 from .forms import BookForm, IssueForm, ReturnForm
 from django.db.models import Sum
+from django.db.models import Q
+from django.http import JsonResponse
+
+@login_required
+def search_books(request):
+    query = request.GET.get("q", "")
+
+    books = Book.objects.filter(
+        Q(title__icontains=query) |
+        Q(author__icontains=query)
+    )[:10]
+
+    data = []
+
+    for book in books:
+        data.append({
+            "id": book.id,
+            "title": book.title,
+            "author": book.author,
+            "status": book.status,
+            "access_count": book.access_count
+        })
+
+    return JsonResponse(data, safe=False)
+
+@login_required
+def book_list(request):
+    query = request.GET.get("q")
+
+    if query:
+        books = Book.objects.filter(
+            Q(title__icontains=query) |
+            Q(author__icontains=query)
+        )
+    else:
+        books = Book.objects.all()
+
+    return render(request, "book_list.html", {"books": books, "query": query})
 
 def login_view(request):
     if request.method == "POST":
@@ -77,10 +115,10 @@ def dashboard(request):
         messages.error(request, "Invalid user role.")
         return redirect("LibApp:logout")
 
-@login_required
-def book_list(request):
-    books = Book.objects.all()
-    return render(request, "book_list.html", {"books": books})
+# @login_required
+# def book_list(request):
+#     books = Book.objects.all()
+#     return render(request, "book_list.html", {"books": books})
 
 
 @login_required

@@ -2,6 +2,7 @@ from django.urls import path
 from .views import *
 app_name="LibApp"
 urlpatterns = [
+    path("search-books/", search_books, name="search_books"),
     path("", login_view, name="login"),
     path("signup/", signup_view, name="signup"),
     path("logout/", logout_view, name="logout"),
